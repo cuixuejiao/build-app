@@ -1,0 +1,64 @@
+apply plugin: 'maven-publish'
+apply plugin: 'maven'
+
+def GROUP_ID = 'com.xxx.xxx'
+
+String renameReleasePath() {
+    String path
+    def targetPath = buildDir.path + "/outputs/aar/"
+    path =  targetPath + MAIN_MODULE + '-release.aar'
+    file(path).renameTo(targetPath+ARTIFACT_ID+'.aar')
+    path =  targetPath + ARTIFACT_ID + '.aar'
+    return path
+}
+
+publishing {
+    println renameReleasePath()
+    publications{
+        maven(MavenPublication) {
+            groupId GROUP_ID
+            artifactId ARTIFACT_ID
+            version VERSION_NAME
+            pom {
+                packaging 'aar'
+            }
+            artifact{
+                file renameReleasePath()
+            }
+
+            //The publication doesn't know about our dependencies, so we have to manually add them to the pom
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.compile.allDependencies.each {
+                    if(it.name != 'unspecified') {
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', it.group)
+                        dependencyNode.appendNode('artifactId', it.name)
+                        dependencyNode.appendNode('version', it.version)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            if (VERSION_NAME.endsWith("-SNAPSHOT")) {
+                url 'http://x.x.x.x:8082/nexus/content/repositories/snapshots'
+                credentials {
+                    username = 'xxx'
+                    password = '123456'
+                }
+            }
+            else {
+                url 'http://x.x.x.x:8082/nexus/content/repositories/releases'
+                credentials {
+                    username = 'xxx'
+                    password = '123456'
+                }
+            }
+        }
+    }
+}
+

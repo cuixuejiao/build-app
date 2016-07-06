@@ -1,0 +1,47 @@
+apply plugin: 'checkstyle'
+apply plugin: 'findbugs'
+
+checkstyle {
+    toolVersion = '6.19'
+    ignoreFailures = true
+}
+findbugs {
+    toolVersion = '3.0.1'
+    ignoreFailures = true
+}
+
+task checkstyle(type: Checkstyle) {
+    configFile file("${project.rootDir}/checkstyle.xml")
+    configProperties.checkstyleSuppressionsPath = file("${project.rootDir}/suppressions.xml")
+    source 'src'
+    include '**/*.java'
+    exclude '**/AesCbcWithIntegrity.java'
+    classpath = files()
+    reports {
+        xml.enabled true
+        html.enabled false
+        xml {
+            destination "$project.buildDir/reports/checkstyle/checkstyle.xml"
+        }
+    }
+}
+
+task findbugs(type: FindBugs) {
+    effort = "max"
+    reportLevel = "high"
+
+    source = fileTree('src/main/java/com/xxx/')
+    classes = files("$project.buildDir/intermediates/classes")
+    classpath = files()
+
+    excludeFilter = new File("${project.rootDir}/findbugs-filter.xml")
+
+    reports {
+        xml.enabled = true
+        html.enabled = false
+        xml {
+            destination "$project.buildDir/reports/findbugs/findbugs.xml"
+        }
+    }
+
+}

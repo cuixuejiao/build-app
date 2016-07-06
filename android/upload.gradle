@@ -1,0 +1,27 @@
+apply plugin: 'maven-publish'
+apply plugin: 'maven'
+
+def GROUP_ID = 'com.xxx.xxx'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            pom.project {
+                groupId GROUP_ID
+                artifactId ARTIFACT_ID
+                version VERSION_NAME
+                packaging 'aar'
+            }
+            if (VERSION_NAME.endsWith("-SNAPSHOT")) {
+                repository(url:'http://xxx.xxx.xx.xx:8082/nexus/content/repositories/snapshots') {
+                    authentication(userName: "xxx", password:"123456")
+                }
+            }
+            else {
+                repository(url:'http://xxx.xxx.xx.xx:8082/nexus/content/repositories/releases') {
+                authentication(userName: "xxx", password:"123456")
+                }
+            }
+        }
+    }
+}
